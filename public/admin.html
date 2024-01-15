@@ -33,6 +33,8 @@
         startButton.onclick = function() {
             fetch('/start');
             averageDisplay.textContent = '';
+            document.getElementById('voteCount').textContent = `Votes: 0`;
+
         };
 
         // End Voting Session
