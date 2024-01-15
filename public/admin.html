@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning Poker Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+        #average {
+            margin-top: 20px;
+            font-size: 24px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Planning Poker - Admin Panel</h1>
+    <button id="startButton">Start Voting</button>
+    <button id="endButton">End Voting</button>
+    <div id="average"></div>
+    <div id="participantCount"></div>
+    <div id="voteCount"></div>
+    <script>
+        const startButton = document.getElementById('startButton');
+        const endButton = document.getElementById('endButton');
+        const averageDisplay = document.getElementById('average');
+
+        // Start Voting Session
+        startButton.onclick = function() {
+            fetch('/start');
+            averageDisplay.textContent = '';
+        };
+
+        // End Voting Session
+        endButton.onclick = function() {
+            fetch('/end');
+        };
+
+        // SSE: Setup event source to listen for server-sent events
+        const eventSource = new EventSource('/events');
+
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            switch (data.type) {
+                case 'end':
+                    averageDisplay.textContent = `Average Vote: ${data.data}`;
+                    break;
+                case 'participantCount':
+                    document.getElementById('participantCount').textContent = `Participants: ${data.data}`;
+                    break;
+                case 'vote':
+                    document.getElementById('voteCount').textContent = `Votes: ${data.voteCount}`;
+                    break;
+                default:
+                    // Handle other event types if necessary
+                    break;
+            }
+        };
+    </script>
+</body>
+</html>
