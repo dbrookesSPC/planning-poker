@@ -27,6 +27,10 @@
             border: 1px solid #ddd;
             cursor: pointer;
         }
+        .selected {
+        border-color: green;
+        border-width: 5px;
+    }
     </style>
 </head>
 <body>
@@ -37,15 +41,15 @@
     </div>
     <div id="message" class="hidden"></div>
     <div class="grid-container">
-        <div class="grid-item" onclick="submitQuickVote(1)"><img src="images/giphy-1.gif" height="150"> <br>1</div>
-        <div class="grid-item" onclick="submitQuickVote(2)"><img src="images/giphy-2.gif" height="150"> <br>2</div>
-        <div class="grid-item" onclick="submitQuickVote(3)"><img src="images/giphy-3.gif" height="150"> <br>3</div>
-        <div class="grid-item" onclick="submitQuickVote(4)"><img src="images/giphy-4.gif" height="150"> <br>4</div>
-        <div class="grid-item" onclick="submitQuickVote(5)"><img src="images/giphy-5.gif" height="150"> <br>5</div>
-        <div class="grid-item" onclick="submitQuickVote(6)"><img src="images/giphy-6.gif" height="150"> <br>6</div>
-        <div class="grid-item" onclick="submitQuickVote(7)"><img src="images/giphy-7.gif" height="150"> <br>7</div>
-        <div class="grid-item" onclick="submitQuickVote(8)"><img src="images/giphy-8.gif" height="150"><br>8</div>
-        <div class="grid-item" onclick="submitQuickVote(9)"><img src="images/giphy-9.gif" height="150"><br>9</div>
+        <div class="grid-item"  id="vote-1" onclick="submitQuickVote(1)"><img src="images/giphy-1.gif" height="150"> <br>1</div>
+        <div class="grid-item"  id="vote-2" onclick="submitQuickVote(2)"><img src="images/giphy-2.gif" height="150"> <br>2</div>
+        <div class="grid-item"  id="vote-3" onclick="submitQuickVote(3)"><img src="images/giphy-3.gif" height="150"> <br>3</div>
+        <div class="grid-item"  id="vote-4" onclick="submitQuickVote(4)"><img src="images/giphy-4.gif" height="150"> <br>4</div>
+        <div class="grid-item"  id="vote-5" onclick="submitQuickVote(5)"><img src="images/giphy-5.gif" height="150"> <br>5</div>
+        <div class="grid-item"  id="vote-6" onclick="submitQuickVote(6)"><img src="images/giphy-6.gif" height="150"> <br>6</div>
+        <div class="grid-item"  id="vote-7" onclick="submitQuickVote(7)"><img src="images/giphy-7.gif" height="150"> <br>7</div>
+        <div class="grid-item"  id="vote-8" onclick="submitQuickVote(8)"><img src="images/giphy-8.gif" height="150"><br>8</div>
+        <div class="grid-item"  id="vote-9" onclick="submitQuickVote(9)"><img src="images/giphy-9.gif" height="150"><br>9</div>
     </div>
     <script>
 let participantId = localStorage.getItem('participantId');
@@ -72,15 +76,25 @@ const joinServer = () => {
         const voteInput = document.getElementById('voteInput');
         const submitVote = document.getElementById('submitVote');
         const messageDiv = document.getElementById('message');
-
+        let currentVote = null;
+        function updateVoteSelection(vote) {
+        for (let i = 1; i <= 9; i++) {
+            document.getElementById(`vote-${i}`).classList.remove('selected');
+        }
+        document.getElementById(`vote-${vote}`).classList.add('selected');
+    }
         // Submit Vote
         submitVote.onclick = function() {
             const vote = voteInput.value;
+            currentVote = voteInput.value;
+
             if (vote >= 1 && vote <= 9) {
                 fetch(`/vote?vote=${vote}&id=${participantId}`);
                 voteInput.value = '';
                 messageDiv.textContent = 'Vote submitted!';
                 messageDiv.classList.remove('hidden');
+                updateVoteSelection(vote);
+
             } else {
                 messageDiv.textContent = 'Please enter a number between 1 and 9.';
                 messageDiv.classList.remove('hidden');
@@ -90,11 +104,15 @@ const joinServer = () => {
              // Modified vote submission function to accept number directly
              function submitQuickVote(vote) {
             if (participantId) {
+                currentVote = vote;
+
                 fetch(`/vote?vote=${vote}&id=${participantId}`);
                 // statusDisplay.textContent = 'Vote submitted!';
                 voteInput.value = '';
                 messageDiv.textContent = 'Vote submitted!';
                 messageDiv.classList.remove('hidden');
+                updateVoteSelection(vote);
+
             } else {
                 // statusDisplay.textContent = 'Waiting for participant ID...';
             }
@@ -107,6 +125,10 @@ const joinServer = () => {
 
             switch (data.type) {
                 case 'start':
+                currentVote = null;
+                for (let i = 1; i <= 9; i++) {
+                    document.getElementById(`vote-${i}`).classList.remove('selected');
+                }
                     messageDiv.textContent = 'Voting has started. Please submit your vote.';
                     messageDiv.classList.remove('hidden');
                     break;

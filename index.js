@@ -3,7 +3,7 @@ const app = express();
 const path = require('path');
 
 // Store votes and session state
-let votes = [];
+let votes = {}; 
 let sessionActive = false;
 let clients = [];
 let participantCount = 0;
@@ -68,20 +68,29 @@ function sendToClients(message) {
 
 // Handle vote submission with participant ID
 app.get('/vote', (req, res) => {
+    // const { vote, id } = req.query;
+    // if (sessionActive && vote && id && participants[id] === false) {
+    //     votes.push(parseInt(vote, 10));
+    //     participants[id] = true; // mark as voted
+    //     voteCount++;
+    //     sendToClients({ type: 'vote', data: vote, voteCount });
+    // }
+    // res.end();
     const { vote, id } = req.query;
-    if (sessionActive && vote && id && participants[id] === false) {
-        votes.push(parseInt(vote, 10));
-        participants[id] = true; // mark as voted
-        voteCount++;
-        sendToClients({ type: 'vote', data: vote, voteCount });
-    }
-    res.end();
+    if (sessionActive && vote && id) {
+        if (!votes[id] || votes[id] !== parseInt(vote, 10)) {
+            votes[id] = parseInt(vote, 10);
+            sendToClients({type: 'voteUpdate', data: { id, vote: votes[id] } });
+        }
+        }
+        res.end();
+        
 });
 
 // Reset voteCount and participants when session starts
 app.get('/start', (req, res) => {
     sessionActive = true;
-    votes = [];
+    votes = {};
     voteCount = 0;
     Object.keys(participants).forEach(id => participants[id] = false);
     sendToClients({ type: 'start' });
@@ -90,8 +99,8 @@ app.get('/start', (req, res) => {
 
 // End voting session and send average
 app.get('/end', (req, res) => {
-    if (votes.length > 0) {
-        const average = votes.reduce((a, b) => a + b, 0) / votes.length;
+    if (Object.keys(votes).length > 0) {
+        const average = Object.values(votes).reduce((a, b) => a + b, 0) / Object.keys(votes).length;
         sendToClients({ type: 'end', data: average.toFixed(2) });
     }
     sessionActive = false;

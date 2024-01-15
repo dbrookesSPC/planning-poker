@@ -34,14 +34,18 @@
             fetch('/start');
             averageDisplay.textContent = '';
             document.getElementById('voteCount').textContent = `Votes: 0`;
-
+            votedParticipants = {};
+                updateVoteCount();
         };
 
         // End Voting Session
         endButton.onclick = function() {
             fetch('/end');
         };
-
+        function updateVoteCount() {
+        const voteCount = Object.keys(votedParticipants).length;
+        document.getElementById('voteCount').textContent = `Votes: ${voteCount}`;
+    }
         // SSE: Setup event source to listen for server-sent events
         const eventSource = new EventSource('/events');
 
@@ -57,6 +61,10 @@
                     break;
                 case 'vote':
                     document.getElementById('voteCount').textContent = `Votes: ${data.voteCount}`;
+                    break;
+                case 'voteUpdate':
+                    votedParticipants[data.data.id] = true;
+                    updateVoteCount();
                     break;
                 default:
                     // Handle other event types if necessary
